@@ -258,7 +258,7 @@ window.startApp = (function(){
   function stat(p, zs){ const a = zs.filter(z=>applies(z,p)); return { n:a.length, d:a.filter(z=>isDone(z,p)).length }; }
   function overall(zs){ let w=0, s=0; S.procs.forEach(p=>{ const k = wt(p); if (!k) return; const st = stat(p,zs); if (!st.n) return; w += k; s += k*st.d/st.n; }); return w ? s/w : null; }
   // 선행 공정(타업체) 중 아직 안 끝난 것
-  const pendingPre = z => S.procs.filter(p => p.pre && applies(z,p) && !isDone(z,p));
+  const pendingPre = z => S.procs.filter(p => p.pre && applies(z,p) && !isDone(z,p) && !(p.passTag && issOf(z,p).includes(p.passTag)));
   // 특정 우리 공정을 막는 선행 공정(gates 없으면 모든 우리 공정을 막음)
   const blockers = (z,p) => pendingPre(z).filter(q => !(q.gates && q.gates.length) || q.gates.includes(p.id));
   const scoped = () => S.zones.filter(z => z.kind !== '범위외');
@@ -533,7 +533,7 @@ window.startApp = (function(){
         const cur = issOf(z,p);
         const okb = document.createElement('button'); okb.type='button'; okb.className='okb'; okb.textContent = p.doneLabel || '완료'; okb.setAttribute('aria-pressed', String(done)); okb.disabled = !S.canWrite || !db;
         okb.onclick = () => toggle(z, p); ir.append(okb);
-        p.issues.forEach(t => { const bt = document.createElement('button'); bt.type='button'; bt.textContent = t; bt.setAttribute('aria-pressed', String(cur.includes(t))); bt.disabled = !S.canWrite || !db;
+        p.issues.forEach(t => { const bt = document.createElement('button'); bt.type='button'; bt.textContent = t; if (t === p.passTag) bt.className='okb'; bt.setAttribute('aria-pressed', String(cur.includes(t))); bt.disabled = !S.canWrite || !db;
           bt.onclick = () => setIssues(z, p, cur.includes(t) ? cur.filter(x=>x!==t) : [...cur, t]); ir.append(bt); });
         list.append(ir);
       }

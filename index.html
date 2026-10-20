@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>운서동 공정 도면</title>
+<meta name="theme-color" content="#24508F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="운서동 공정">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+html,body{-webkit-text-size-adjust:100%}
+@media (display-mode: standalone){body{padding-top:max(12px,env(safe-area-inset-top,0px))!important}}
+#gate{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--paper,#F3F4F1)}
+#gate .box{max-width:380px;width:100%;background:var(--sheet,#fff);border:1px solid var(--line,#D5D9D4);border-radius:10px;padding:22px;text-align:center;font-family:"IBM Plex Sans KR",system-ui,sans-serif;color:var(--ink,#1C2530)}
+#gate h1{font-size:20px;margin:0 0 6px}#gate p{font-size:13.5px;color:var(--muted,#5E6873);margin:6px 0 14px;line-height:1.55}
+#gate button{font:inherit;font-size:15px;padding:10px 18px;border-radius:8px;border:1px solid #24508F;background:#24508F;color:#fff;cursor:pointer}
+#gate button.ghost{background:transparent;color:#24508F;margin-top:8px}
+#gate .err{color:#B23A48}
+#importBox{margin-top:12px;text-align:left;font-size:13px}
+</style>
+</head>
+<body>
+<div id="gate"><div class="box"><h1>운서동 공정 도면</h1><p id="gateMsg">불러오는 중입니다…</p><div id="gateAct"></div></div></div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: blueprint sheet — summary strip on top, floor tabs, drawing on the left, room panel on the right (stacks on phones) */
+:root{
+  --paper:#F3F4F1; --sheet:#FFFFFF; --ink:#1C2530; --muted:#5E6873; --line:#D5D9D4; --blue:#24508F; --blue-soft:#E3EAF4;
+  --ok:#2F7D4F; --warn:#B26A00; --bad:#B23A48; --shadow:0 1px 2px rgba(20,30,40,.06),0 4px 14px rgba(20,30,40,.06);
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#12171D; --sheet:#1A2129; --ink:#E6EAEE; --muted:#9AA5B0; --line:#2E3842; --blue:#8FB1E3; --blue-soft:#22324A;
+  --ok:#6BC293; --warn:#E3A64B; --bad:#E07A86; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12171D; --sheet:#1A2129; --ink:#E6EAEE; --muted:#9AA5B0; --line:#2E3842; --blue:#8FB1E3; --blue-soft:#22324A;
+  --ok:#6BC293; --warn:#E3A64B; --bad:#E07A86; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--sans);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+.wrap{max-width:1280px;margin-inline:auto;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+header.top h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em}
+header.top .sub{color:var(--muted);font-size:13px}
+.big{font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.headstat{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.headstat .lbl{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tab .pct{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:var(--sheet)}
+.tab[aria-selected="true"] .pct{color:inherit;opacity:.85}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:15px;margin:0 0 4px;font-weight:600}
+.card .cap{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+.notice{border:1px solid var(--line);background:var(--blue-soft);border-radius:var(--r);padding:10px 12px;font-size:13px}
+.notice.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip .sw{width:10px;height:10px;border-radius:50%;flex:none}
+.chip[aria-pressed="true"]{border-color:var(--ink);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:var(--sheet);color:var(--ink);padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.btn{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--sheet)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.floorgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+@media (max-width:900px){.floorgrid{grid-template-columns:minmax(0,1fr)}}
+.viewport{overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff;max-height:78vh;touch-action:pan-x pan-y}
+.issrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:-2px 0 4px 34px;font-size:12px;color:var(--muted)}
+.issrow button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:2px 9px;font:inherit;font-size:12px;cursor:pointer}
+.issrow button[aria-pressed="true"]{background:#B23A48;border-color:#B23A48;color:#fff}
+.mk .iss{font-family:var(--sans);font-size:9.5px;color:#B23A48;font-weight:700;line-height:1}
+.isssum{margin-top:10px;font-size:12.5px;color:var(--muted)}
+/* 전체 화면(태블릿) */
+body.fs{padding:8px max(8px,env(safe-area-inset-left,0px)) 8px max(8px,env(safe-area-inset-right,0px))}
+body.fs header.top,body.fs #msg{display:none}
+body.fs .wrap{max-width:none;gap:8px}
+body.fs #viewFloor>.card:first-child{padding:8px 10px}
+body.fs .floorgrid{margin-top:8px!important;gap:8px;grid-template-columns:minmax(0,1fr) 280px}
+body.fs .viewport{max-height:calc(100dvh - var(--fsTop,190px))}
+body.fs.pseudo{position:fixed;inset:0;overflow:auto;z-index:50;background:var(--paper)}
+@media (max-width:900px){body.fs .floorgrid{grid-template-columns:minmax(0,1fr)}}
+.btn.fsbtn{font-weight:600}
+.planwrap{position:relative;width:100%;transform-origin:0 0}
+.planwrap img{display:block;width:100%;max-width:none;user-select:none;-webkit-user-drag:none}
+.planwrap.edit{cursor:crosshair}
+.mk{position:absolute;transform:translate(-50%,-50%);border:2px solid #1C2530;background:#fff;color:#1C2530;border-radius:7px;padding:1px 5px 2px;font-family:var(--mono);font-size:11px;font-weight:600;line-height:1.15;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:34px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.mk .dots{display:flex;gap:2px}
+.mk .dots i{width:6px;height:6px;border-radius:50%;border:1px solid rgba(0,0,0,.35);background:#fff}
+.mk.na{opacity:.35}
+.mk.sel{outline:3px solid var(--warn);outline-offset:1px}
+.mk.kind-복도,.mk.kind-린넨실,.mk.kind-기타{border-style:dashed}
+.mk .dots i.pre{border-radius:1px}
+.mk.kind-범위외{opacity:.4;border-style:dotted;cursor:default}
+.mk .blk{position:absolute;top:-9px;right:-10px;background:#B23A48;color:#fff;font-size:9.5px;line-height:1;padding:2px 4px;border-radius:4px;font-family:var(--sans);font-weight:700}
+.rg{position:absolute;pointer-events:none;border:1.5px dashed rgba(36,80,143,.55);background:rgba(36,80,143,.08);border-radius:3px}
+.grp{font-size:12px;color:var(--muted);font-weight:600;margin:12px 0 2px;letter-spacing:.02em}
+.grp:first-child{margin-top:0}
+.wait{display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 10px;font-size:13px}
+.wait .fl{font-weight:600}
+.wait .rooms{display:flex;flex-wrap:wrap;gap:4px}
+.wait .rooms span{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.wait .rooms span.f{border-color:#B23A48;color:#B23A48}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:13px}
+.bar .track{height:12px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;border-radius:6px}
+.bar .num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;font-size:12.5px}
+.bar .nm{display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tw{overflow-x:auto}
+table.mx{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+table.mx th,table.mx td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:center;white-space:nowrap}
+table.mx th{font-weight:500;color:var(--muted);font-size:12px}
+table.mx td.fl{text-align:left;font-weight:600}
+table.mx td.c{font-family:var(--mono);font-size:12px;cursor:pointer}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.panel h3{margin:0;font-size:16px}
+.panel .meta{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:13.5px}
+.prow input{width:18px;height:18px;accent-color:var(--blue)}
+.prow .when{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.form{display:flex;flex-direction:column;gap:8px}
+.form label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.form input,.form select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--sheet);color:var(--ink)}
+.prm{display:grid;grid-template-columns:28px minmax(0,1.4fr) minmax(0,1.6fr) 64px 54px 34px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.prm input[type=text],.prm input[type=number]{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--sheet);color:var(--ink);width:100%}
+.prm input[type=color]{width:28px;height:28px;border:0;padding:0;background:none}
+.prm .kinds{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:12px}
+.prm .kinds label{display:inline-flex;gap:3px;align-items:center}
+.prm.head{font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.prm .prechk{display:inline-flex;gap:3px;align-items:center;font-size:12px}
+@media (max-width:560px){.prm{grid-template-columns:28px minmax(0,1fr) 56px 50px 34px}.prm .kinds{grid-column:2/-1;order:5}}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+.muted{color:var(--muted)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>운서동 공정 도면</h1>
+      <div class="sub">운서역 숙박시설 도장공사 · 4~10층 · PLM 실시설계 평면도(A-002~005) 기준</div>
+    </div>
+    <div class="headstat">
+      <div><div class="lbl">전체 공정률 (품셈 가중)</div><div class="big" id="hOverall">—</div></div>
+      <div><div class="lbl">객실</div><div class="big" id="hRooms" style="font-size:20px">—</div></div>
+      <div><div class="lbl">작업 가능 객실 (선행 공정 완료)</div><div class="big" id="hReady" style="font-size:20px">—</div></div>
+    </div>
+  </header>
+
+  <div id="msg" class="notice" hidden></div>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="층 선택"></nav>
+
+  <section id="viewAll">
+    <div class="grid2">
+      <div class="card">
+        <h2>공정별 완성률</h2>
+        <p class="cap">각 공정이 적용되는 구역(객실·복도 구간·린넨실 등) 중 완료된 비율 · 전체 공정률은 우리 공정의 품셈 가중치로 계산 · 선행 공정(타업체)은 공정률에 넣지 않고 작업 가능 여부만 봅니다</p>
+        <div class="bars" id="procBars"><div class="empty">공정 데이터를 불러오는 중입니다.</div></div>
+      </div>
+      <div class="card">
+        <h2>층 × 공정</h2>
+        <p class="cap">칸을 누르면 해당 층 도면으로 이동합니다</p>
+        <div class="tw"><table class="mx" id="matrix"></table></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>작업 대기 객실</h2>
+      <p class="cap">선행 공정(타업체)이 끝나지 않아 우리 공정을 진행할 수 없는 객실 · 호수 테두리 색 = 아직 남은 선행 공정 (호수를 누르면 해당 층으로 이동)</p>
+      <div id="waitList"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>공정 관리</h2>
+      <p class="cap">공정을 추가하거나 이름·색·적용 구역·가중치(품셈)를 바꿀 수 있습니다. 가중치 0은 전체 공정률에서 빠지고 따로 집계됩니다. 「선행」에 체크한 공정은 타업체 공정으로, 끝나야 우리 공정을 할 수 있는 항목입니다. 특정 구역에만 적용할 공정은 층 도면의 구역 편집에서 구역별로 켜고 끕니다.</p>
+      <div id="procEditor"></div>
+      <div class="toolbar" style="margin-top:10px">
+        <button class="btn" id="addProc" type="button">공정 추가</button>
+        <button class="btn primary" id="saveProc" type="button">공정 저장</button>
+        <span class="muted" id="procHint"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="viewFloor" hidden>
+    <div class="card">
+      <div class="toolbar" style="justify-content:space-between">
+        <div class="seg" role="group" aria-label="모드">
+          <button type="button" data-mode="mark" aria-pressed="true">작업 표시</button>
+          <button type="button" data-mode="view" aria-pressed="false">상세 보기</button>
+          <button type="button" data-mode="edit" aria-pressed="false">구역 편집</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="zoomOut" type="button" aria-label="축소">－</button>
+          <span class="muted" id="zoomLbl" style="font-family:var(--mono);font-size:12px">100%</span>
+          <button class="btn" id="zoomIn" type="button" aria-label="확대">＋</button>
+          <button class="btn fsbtn" id="fsBtn" type="button">전체 화면</button>
+        </div>
+      </div>
+      <div class="toolbar" id="procChips" style="margin-top:10px"></div>
+      <p class="cap" id="modeHint" style="margin:8px 0 0"></p>
+    </div>
+    <div class="floorgrid" style="margin-top:14px">
+      <div class="card" style="padding:10px">
+        <div class="viewport" id="vp"><div class="planwrap" id="pw"><img id="planImg" alt="층 평면도"></div></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="card panel" id="side"></div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="firebase-config.js"></script>
+<script>
+window.startApp = (function(){
+  const $ = s => document.querySelector(s);
+  const FLOORS = [4,5,6,7,8,9,10];
+  const KINDS = ['객실','복도','린넨실','기타'];
+  const ZKINDS = [...KINDS, '범위외'];
+  const S = { procs:[], zones:[], status:{}, view:'all', active:null, mode:'mark', zoom:1, sel:null, uid:null, canWrite:true, ready:{p:false,z:false,s:false}, draftProcs:null };
+  let db = null, user = null;
+  const fid = f => 'F' + String(f).padStart(2,'0');
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+  const pct = (a,b) => b ? a/b : null;
+  const fmtP = v => v == null ? '–' : (v*100).toFixed(v === 1 || v === 0 ? 0 : 1) + '%';
+  try { const v = localStorage.getItem('unseo-view'); if (v) S.view = v; } catch(e) {}
+
+  function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('on'), t.length > 40 ? 4000 : 1800); }
+  function msg(t, bad){ const el = $('#msg'); if (!t){ el.hidden = true; return; } el.hidden = false; el.textContent = t; el.classList.toggle('bad', !!bad); }
+
+  // ---------- derived numbers ----------
+  const recOf = (z,p) => { const s = S.status[fid(z.floor)]; return (s && s[z.id] && s[z.id][p.id]) || null; };
+  // 완료 = 기록이 있고 ok:false가 아님. ok:false 기록은 미완료 사유(iss)만 담음
+  const isDone = (z,p) => { const r = recOf(z,p); return !!(r && r.ok !== false); };
+  const issOf = (z,p) => { const r = recOf(z,p); return (r && r.ok === false && r.iss) || []; };
+  // 공정 적용: 구역 종류(kinds) 기본값 → 구역별 추가(add)/제외(skip)로 조정. 범위외 구역은 어떤 공정도 적용 안 함
+  const defApplies = (z,p) => (p.kinds||[]).includes(z.kind);
+  const applies = (z,p) => { if (z.kind === '범위외') return false; if ((z.skip||[]).includes(p.id)) return false; if ((z.add||[]).includes(p.id)) return true; return defApplies(z,p); };
+  const wt = p => p.pre ? 0 : (Number(p.weight)||0);
+  function stat(p, zs){ const a = zs.filter(z=>applies(z,p)); return { n:a.length, d:a.filter(z=>isDone(z,p)).length }; }
+  function overall(zs){ let w=0, s=0; S.procs.forEach(p=>{ const k = wt(p); if (!k) return; const st = stat(p,zs); if (!st.n) return; w += k; s += k*st.d/st.n; }); return w ? s/w : null; }
+  // 선행 공정(타업체) 중 아직 안 끝난 것
+  const pendingPre = z => S.procs.filter(p => p.pre && applies(z,p) && !isDone(z,p));
+  // 특정 우리 공정을 막는 선행 공정(gates 없으면 모든 우리 공정을 막음)
+  const blockers = (z,p) => pendingPre(z).filter(q => !(q.gates && q.gates.length) || q.gates.includes(p.id));
+  const scoped = () => S.zones.filter(z => z.kind !== '범위외');
+
+  // ---------- header + tabs ----------
+  function renderHead(){
+    $('#hOverall').textContent = fmtP(overall(S.zones));
+    const rooms = S.zones.filter(z=>z.kind==='객실');
+    const fin = S.procs.length ? rooms.filter(z => S.procs.filter(p=>applies(z,p) && wt(p)>0).every(p=>isDone(z,p))).length : 0;
+    $('#hRooms').textContent = rooms.length ? fin + ' / ' + rooms.length + '실 완료' : '—';
+    const ready = rooms.filter(z => !pendingPre(z).length).length;
+    $('#hReady').textContent = rooms.length ? ready + ' / ' + rooms.length + '실' : '—';
+  }
+  function renderTabs(){
+    const t = $('#tabs'); t.textContent = '';
+    const mk = (key, label, sub) => { const b = document.createElement('button'); b.className = 'tab'; b.type = 'button'; b.setAttribute('role','tab'); b.setAttribute('aria-selected', String(S.view===key)); b.append(label); if (sub!=null){ const s = document.createElement('span'); s.className='pct'; s.textContent = sub; b.append(s); } b.onclick = () => go(key); t.append(b); };
+    mk('all','전체', null);
+    FLOORS.forEach(f => mk(String(f), f + '층', fmtP(overall(S.zones.filter(z=>z.floor===f)))));
+  }
+  function go(key){ S.view = key; S.sel = null; try{ localStorage.setItem('unseo-view', key); }catch(e){} render(); }
+
+  // ---------- summary view ----------
+  function renderAll(){
+    const bars = $('#procBars'); bars.textContent = '';
+    if (!S.procs.length){ const e = document.createElement('div'); e.className='empty'; e.textContent = S.ready.p ? '등록된 공정이 없습니다. 아래 공정 관리에서 추가하세요.' : '공정 데이터를 불러오는 중입니다.'; bars.append(e); }
+    const groups = [['우리 공정', S.procs.filter(p=>!p.pre)], ['선행 공정 (타업체 · 공정률 제외)', S.procs.filter(p=>p.pre)]];
+    groups.forEach(([gname, ps]) => {
+      if (!ps.length) return;
+      const g = document.createElement('div'); g.className='grp'; g.textContent = gname; bars.append(g);
+      ps.forEach(p => {
+        const st = stat(p, S.zones); const v = pct(st.d, st.n);
+        const row = document.createElement('div'); row.className = 'bar';
+        const nm = document.createElement('div'); nm.className='nm'; const sw = document.createElement('span'); sw.className='sw'; sw.style.cssText='width:10px;height:10px;flex:none;background:'+p.color+';border-radius:'+(p.pre?'2px':'50%'); nm.append(sw, p.name + (p.pre || wt(p) ? '' : ' ·별도'));
+        nm.title = p.name;
+        const tr = document.createElement('div'); tr.className='track'; const fl = document.createElement('div'); fl.className='fill'; fl.style.width = ((v||0)*100)+'%'; fl.style.background = p.color; tr.append(fl);
+        const num = document.createElement('div'); num.className='num'; num.textContent = fmtP(v) + '  ' + st.d + '/' + st.n;
+        row.append(nm, tr, num); bars.append(row);
+      });
+    });
+    S.procs.filter(p => p.issues && p.issues.length).forEach(p => {
+      const zs = S.zones.filter(z => applies(z,p) && !isDone(z,p)); const cnt = {}; let withIss = 0;
+      zs.forEach(z => { const is = issOf(z,p); if (is.length) withIss++; is.forEach(t => cnt[t] = (cnt[t]||0)+1); });
+      const d = document.createElement('div'); d.className='isssum';
+      d.textContent = p.name + ' 미완료 ' + zs.length + '곳 · 사유 표시 ' + withIss + '곳' + (withIss ? ' (' + p.issues.map(t => t + ' ' + (cnt[t]||0)).join(' · ') + ')' : '');
+      bars.append(d);
+    });
+    renderWait();
+    const tb = $('#matrix'); tb.textContent = '';
+    const thead = document.createElement('tr'); const h0 = document.createElement('th'); h0.textContent='층'; thead.append(h0);
+    S.procs.forEach(p => { const th = document.createElement('th'); th.textContent = p.name; th.style.borderBottom = '3px solid ' + p.color; thead.append(th); });
+    const thA = document.createElement('th'); thA.textContent = '층 공정률'; thead.append(thA); tb.append(thead);
+    FLOORS.forEach(f => {
+      const zs = S.zones.filter(z=>z.floor===f); const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.className='fl'; td0.textContent = f + '층'; tr.append(td0);
+      S.procs.forEach(p => { const st = stat(p, zs); const v = pct(st.d, st.n); const td = document.createElement('td'); td.className='c'; td.textContent = st.n ? fmtP(v) : '–'; if (st.n){ td.title = st.d + '/' + st.n; td.style.background = 'color-mix(in srgb, ' + p.color + ' ' + Math.round((v||0)*55) + '%, transparent)'; } td.onclick = () => { S.active = p.id; go(String(f)); }; tr.append(td); });
+      const tdA = document.createElement('td'); tdA.className='c'; tdA.style.fontWeight='600'; tdA.textContent = fmtP(overall(zs)); tdA.onclick = () => go(String(f)); tr.append(tdA);
+      tb.append(tr);
+    });
+    renderProcEditor();
+  }
+  function renderWait(){
+    const box = $('#waitList'); box.textContent = '';
+    const w = document.createElement('div'); w.className='wait'; let any = false;
+    FLOORS.forEach(f => {
+      const rs = S.zones.filter(z => z.floor===f && z.kind==='객실').map(z => ({ z, pp: pendingPre(z) })).filter(x => x.pp.length);
+      if (!rs.length) return; any = true;
+      const fl = document.createElement('div'); fl.className='fl'; fl.textContent = f + '층';
+      const rooms = document.createElement('div'); rooms.className='rooms';
+      rs.forEach(({z,pp}) => { const s = document.createElement('span'); s.textContent = z.label.replace('호',''); s.style.borderColor = pp[0].color; s.style.color = pp[0].color; s.style.cursor='pointer'; s.title = z.label + ' · 대기: ' + pp.map(p=>p.name).join(', '); s.onclick = () => { S.sel = z.id; S.mode = 'view'; go(String(f)); S.sel = z.id; renderFloor(); }; rooms.append(s); });
+      w.append(fl, rooms);
+    });
+    if (!any){ const e = document.createElement('div'); e.className='muted'; e.textContent = S.procs.some(p=>p.pre) ? '모든 객실의 선행 공정이 끝났습니다.' : '선행 공정이 등록되어 있지 않습니다.'; box.append(e); return; }
+    box.append(w);
+  }
+
+  // ---------- process editor ----------
+  function renderProcEditor(){
+    const box = $('#procEditor'); box.textContent = '';
+    if (!S.draftProcs) S.draftProcs = S.procs.map(p => ({...p, kinds:[...(p.kinds||[])]}));
+    const head = document.createElement('div'); head.className='prm head'; ['색','공정 이름','적용 구역','가중치','선행',''].forEach(t=>{const d=document.createElement('div'); d.textContent=t; head.append(d);}); box.append(head);
+    S.draftProcs.forEach((p,i) => {
+      const r = document.createElement('div'); r.className='prm';
+      const c = document.createElement('input'); c.type='color'; c.value=p.color; c.id='pc-'+p.id; c.setAttribute('aria-label','색'); c.oninput = () => { p.color = c.value; dirty(); };
+      const n = document.createElement('input'); n.type='text'; n.value=p.name; n.id='pn-'+p.id; n.setAttribute('aria-label','공정 이름'); n.oninput = () => { p.name = n.value; dirty(); };
+      const k = document.createElement('div'); k.className='kinds';
+      KINDS.forEach(kd => { const l = document.createElement('label'); const cb = document.createElement('input'); cb.type='checkbox'; cb.id='pk-'+p.id+'-'+kd; cb.checked = p.kinds.includes(kd); cb.onchange = () => { p.kinds = cb.checked ? [...p.kinds, kd] : p.kinds.filter(x=>x!==kd); dirty(); }; l.append(cb, kd); k.append(l); });
+      const w = document.createElement('input'); w.type='number'; w.min='0'; w.step='1'; w.value = p.weight; w.id='pw-'+p.id; w.setAttribute('aria-label','가중치'); w.oninput = () => { p.weight = Number(w.value)||0; dirty(); };
+      const pl = document.createElement('label'); pl.className='prechk'; pl.title='타업체 선행 공정 (공정률 제외, 작업 가능 여부 판단)'; const pc = document.createElement('input'); pc.type='checkbox'; pc.id='pp-'+p.id; pc.checked = !!p.pre; pc.onchange = () => { p.pre = pc.checked; dirty(); }; pl.append(pc, '타업체');
+      const del = document.createElement('button'); del.type='button'; del.className='btn'; del.textContent='✕'; del.setAttribute('aria-label', p.name + ' 삭제'); del.onclick = () => { S.draftProcs.splice(i,1); dirty(); renderProcEditor(); };
+      r.append(c,n,k,w,pl,del); box.append(r);
+    });
+    const can = S.canWrite && !!db; $('#saveProc').disabled = !can; $('#addProc').disabled = !can;
+  }
+  $('#addProc').onclick = () => { if (!S.draftProcs) S.draftProcs = []; S.draftProcs.push({ id:'p'+Date.now().toString(36), name:'새 공정', color:'#7a6a55', kinds:['객실'], weight:0 }); dirty(); renderProcEditor(); };
+  function dirty(){ S.procDirty = true; $('#procHint').textContent = '저장해야 반영됩니다'; }
+  $('#saveProc').onclick = async () => {
+    const list = (S.draftProcs||[]).map(p => ({ ...p, name:(p.name||'').trim() || '이름 없음', weight:Number(p.weight)||0, pre:!!p.pre }));
+    try { await db.doc('config/processes').set({ list }); S.draftProcs = null; S.procDirty = false; $('#procHint').textContent = ''; toast('공정을 저장했습니다'); }
+    catch(e){ writeFail(e); }
+  };
+
+  // ---------- floor view ----------
+  function floorZones(){ return S.zones.filter(z => String(z.floor) === S.view); }
+  function renderChips(){
+    const box = $('#procChips'); box.textContent = '';
+    if (!S.procs.find(p=>p.id===S.active)) S.active = S.procs[0] && S.procs[0].id;
+    const zs = floorZones();
+    let sep = false;
+    [...S.procs.filter(p=>!p.pre), ...S.procs.filter(p=>p.pre)].forEach(p => {
+      const st = stat(p, zs); if (!st.n) return;
+      if (p.pre && !sep){ sep = true; const g = document.createElement('span'); g.className='muted'; g.style.cssText='font-size:12px;margin-left:6px'; g.textContent='선행(타업체):'; box.append(g); }
+      const b = document.createElement('button'); b.type='button'; b.className='chip'; b.setAttribute('aria-pressed', String(p.id===S.active));
+      const sw = document.createElement('span'); sw.className='sw'; sw.style.background = p.color; if (p.pre) sw.style.borderRadius='2px';
+      const t = document.createElement('span'); t.textContent = p.name;
+      const n = document.createElement('span'); n.style.cssText='font-family:var(--mono);font-size:11.5px;color:var(--muted)'; n.textContent = st.d + '/' + st.n;
+      b.append(sw,t,n); b.onclick = () => { S.active = p.id; renderFloor(); }; box.append(b);
+    });
+    const hint = $('#modeHint');
+    const ap = S.procs.find(p=>p.id===S.active);
+    hint.textContent = S.mode==='mark' ? (ap ? '구역을 누르면 「' + ap.name + '」 완료가 표시되고, 다시 누르면 취소됩니다.' : '') : S.mode==='view' ? '구역을 누르면 오른쪽에 공정별 완료 내역이 나옵니다.' : '빈 곳을 누르면 새 구역이 추가되고, 표시를 끌면 위치가 옮겨집니다.';
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode===S.mode)));
+  }
+  function renderPlan(){
+    const zs = floorZones(); const pw = $('#pw'); const img = $('#planImg');
+    const src = zs[0] ? zs[0].plan : ({4:'plan4.png',5:'plan5.png',6:'plan5.png',7:'plan6.png',8:'plan6.png',9:'plan6.png',10:'plan7.png'})[S.view];
+    const url = (window.PLANS && window.PLANS[src]) || ''; if (img.dataset.plan !== src && url){ img.dataset.plan = src; img.setAttribute('src', url); }
+    img.alt = S.view + '층 평면도';
+    pw.style.width = (S.zoom*100) + '%'; pw.classList.toggle('edit', S.mode==='edit');
+    pw.querySelectorAll('.mk,.rg').forEach(n=>n.remove());
+    const ap = S.procs.find(p=>p.id===S.active);
+    // 복도 구간 영역(rects: [[x0,y0,x1,y1],...] 도면 대비 비율)
+    zs.forEach(z => (z.rects||[]).forEach(r => {
+      const d = document.createElement('div'); d.className='rg';
+      d.style.left=(r[0]*100)+'%'; d.style.top=(r[1]*100)+'%'; d.style.width=((r[2]-r[0])*100)+'%'; d.style.height=((r[3]-r[1])*100)+'%';
+      if (S.mode==='mark' && ap && applies(z,ap)){ const done = isDone(z,ap); d.style.borderColor = ap.color; d.style.background = done ? 'color-mix(in srgb,'+ap.color+' 35%, transparent)' : 'color-mix(in srgb,'+ap.color+' 7%, transparent)'; d.style.borderStyle = done ? 'solid' : 'dashed'; }
+      if (S.sel===z.id) d.style.outline = '3px solid var(--warn)';
+      pw.append(d);
+    }));
+    zs.forEach(z => {
+      const b = document.createElement('button'); b.type='button'; b.className='mk kind-'+z.kind; b.dataset.id = z.id;
+      b.style.left = (z.x*100)+'%'; b.style.top = (z.y*100)+'%';
+      const lbl = document.createElement('span'); lbl.textContent = z.kind==='객실' ? z.label.replace('호','') : z.label.replace(z.floor+'층 ','');
+      const dots = document.createElement('span'); dots.className='dots';
+      [...S.procs.filter(p=>!p.pre), ...S.procs.filter(p=>p.pre)].filter(p=>applies(z,p)).forEach(p => { const i = document.createElement('i'); if (p.pre) i.className='pre'; if (isDone(z,p)) i.style.background = p.color; else if (issOf(z,p).length) i.style.boxShadow = 'inset 0 0 0 2px #B23A48'; i.title = p.name; dots.append(i); });
+      if (ap && ap.issues && applies(z,ap) && issOf(z,ap).length){ const t = document.createElement('span'); t.className='iss'; t.textContent = issOf(z,ap).join('·'); b.append(t); }
+      b.append(lbl, dots);
+      const pp = pendingPre(z);
+      if (pp.length){ const k = document.createElement('span'); k.className='blk'; k.textContent='대기'; k.style.background = pp[0].color; k.title = '선행 대기: ' + pp.map(p=>p.name).join(', '); b.append(k); }
+      if (z.kind==='범위외'){ lbl.textContent = lbl.textContent + ' 제외'; }
+      if (S.mode==='mark' && ap){ if (!applies(z,ap)) b.classList.add('na'); else if (isDone(z,ap)){ b.style.background = ap.color; b.style.color = '#fff'; b.style.borderColor = ap.color; } }
+      if (S.sel===z.id) b.classList.add('sel');
+      b.setAttribute('aria-label', z.label + (pp.length ? ' · 선행 대기' : '') + (ap && applies(z,ap) ? ' · ' + ap.name + (isDone(z,ap)?' 완료':' 미완료') : ''));
+      attachMarker(b, z);
+      pw.append(b);
+    });
+    $('#zoomLbl').textContent = Math.round(S.zoom*100) + '%';
+    const lg = $('#legend'); lg.textContent = '';
+    S.procs.forEach(p => { if (!stat(p,zs).n) return; const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = p.color; if (p.pre) i.style.borderRadius='2px'; s.append(i, p.name + (p.pre ? '(타업체)' : '')); lg.append(s); });
+    const s2 = document.createElement('span'); s2.textContent = '점선 테두리 = 복도 구간·린넨실·기타 · 「대기」 = 선행 공정 미완료(색 = 남은 선행 공정) · 네모 점 = 타업체 공정'; lg.append(s2);
+  }
+  function attachMarker(b, z){
+    let drag = null;
+    b.addEventListener('pointerdown', e => {
+      if (S.mode !== 'edit' || !S.canWrite) return;
+      e.preventDefault(); b.setPointerCapture(e.pointerId);
+      drag = { moved:false, x0:e.clientX, y0:e.clientY };
+    });
+    b.addEventListener('pointermove', e => {
+      if (!drag) return;
+      if (Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0) > 4) drag.moved = true;
+      if (!drag.moved) return;
+      const r = $('#pw').getBoundingClientRect();
+      z.x = Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); z.y = Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));
+      b.style.left = (z.x*100)+'%'; b.style.top = (z.y*100)+'%';
+    });
+    b.addEventListener('pointerup', async e => {
+      if (!drag) return; const moved = drag.moved; drag = null;
+      if (moved){ z.x = +z.x.toFixed(4); z.y = +z.y.toFixed(4); await saveZones('위치를 옮겼습니다'); }
+      else { S.sel = z.id; renderFloor(); }
+    });
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      if (S.mode === 'edit') return;
+      if (S.mode === 'view'){ S.sel = z.id; renderFloor(); return; }
+      if (z.kind === '범위외'){ toast(z.label + '은(는) 작업 범위가 아니라 공정률에서 제외됩니다'); return; }
+      const ap = S.procs.find(p=>p.id===S.active); if (!ap) return;
+      if (!applies(z,ap)){ toast('「' + ap.name + '」은(는) ' + z.label + '에 적용되지 않는 공정입니다'); return; }
+      S.sel = z.id; toggle(z, ap);
+    });
+  }
+  $('#pw').addEventListener('click', e => {
+    if (S.mode !== 'edit' || e.target.closest('.mk')) return;
+    if (!S.canWrite || !db){ toast('편집 권한이 없습니다'); return; }
+    const r = $('#pw').getBoundingClientRect();
+    const f = Number(S.view);
+    const z = { id: fid(f) + '-X' + Date.now().toString(36), floor:f, plan: $('#planImg').getAttribute('src'), label: f + '층 새 구역', kind:'기타', type:'', x:+((e.clientX-r.left)/r.width).toFixed(4), y:+((e.clientY-r.top)/r.height).toFixed(4) };
+    S.zones.push(z); S.sel = z.id; saveZones('새 구역을 추가했습니다 · 이름과 종류를 정해 주세요');
+  });
+
+  function renderSide(){
+    const side = $('#side'); side.textContent = '';
+    const zs = floorZones(); const z = zs.find(x=>x.id===S.sel);
+    if (!z){
+      const h = document.createElement('h3'); h.textContent = S.view + '층 현황'; side.append(h);
+      const rms = zs.filter(x=>x.kind==='객실'); const rdy = rms.filter(x=>!pendingPre(x).length).length;
+      const m = document.createElement('div'); m.className='meta'; m.textContent = '객실 ' + rms.length + '실 · 층 공정률 ' + fmtP(overall(zs)) + ' · 작업 가능 ' + rdy + '/' + rms.length + '실'; side.append(m);
+      const bars = document.createElement('div'); bars.className='bars';
+      [...S.procs.filter(p=>!p.pre), ...S.procs.filter(p=>p.pre)].forEach(p => { const st = stat(p,zs); if (!st.n) return; const v = pct(st.d,st.n);
+        const row = document.createElement('div'); row.className='bar'; row.style.gridTemplateColumns='88px minmax(0,1fr) 64px';
+        const nm = document.createElement('div'); nm.className='nm'; nm.textContent = p.name; nm.title = p.name + (p.pre ? ' (타업체)' : '');
+        const tr = document.createElement('div'); tr.className='track'; const fl = document.createElement('div'); fl.className='fill'; fl.style.width=((v||0)*100)+'%'; fl.style.background=p.color; tr.append(fl);
+        const num = document.createElement('div'); num.className='num'; num.textContent = st.d + '/' + st.n; row.append(nm,tr,num); bars.append(row); });
+      side.append(bars);
+      if (S.mode==='mark'){
+        const ap = S.procs.find(p=>p.id===S.active);
+        if (ap && stat(ap,zs).n){
+          const t = document.createElement('div'); t.className='toolbar'; t.style.marginTop='14px';
+          const all = document.createElement('button'); all.type='button'; all.className='btn'; all.textContent = '이 층 「' + ap.name + '」 모두 완료';
+          all.onclick = () => bulk(ap, true);
+          const none = document.createElement('button'); none.type='button'; none.className='btn'; none.textContent = '모두 취소';
+          none.onclick = () => bulk(ap, false);
+          if (!S.canWrite || !db){ all.disabled = none.disabled = true; }
+          t.append(all, none); side.append(t);
+        }
+      }
+      return;
+    }
+    const h = document.createElement('h3'); h.textContent = z.label; side.append(h);
+    const m = document.createElement('div'); m.className='meta'; m.textContent = z.kind + (z.type ? ' · ' + z.type : ''); side.append(m);
+    const zpp = pendingPre(z);
+    if (zpp.length && S.mode !== 'edit'){ const n = document.createElement('div'); n.className='notice'; n.style.cssText='margin-bottom:10px;border-color:'+zpp[0].color; n.textContent = '선행 대기: ' + zpp.map(p=>p.name).join(', ') + ' — 끝나야 우리 공정 진행 가능'; side.append(n); }
+    if (z.kind === '범위외' && S.mode !== 'edit'){ const n = document.createElement('div'); n.className='notice'; n.textContent = '우리 작업 범위가 아닌 구역입니다. 공정률과 객실 수에서 제외됩니다.'; side.append(n); }
+    if (S.mode === 'edit'){
+      const f = document.createElement('div'); f.className='form';
+      const l1 = document.createElement('label'); l1.textContent='구역 이름'; const i1 = document.createElement('input'); i1.id='zname'; i1.value = z.label; l1.append(i1);
+      const l2 = document.createElement('label'); l2.textContent='종류'; const s2 = document.createElement('select'); s2.id='zkind'; ZKINDS.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; if (k===z.kind) o.selected=true; s2.append(o); }); l2.append(s2);
+      const l3 = document.createElement('label'); l3.textContent='타입·메모'; const i3 = document.createElement('input'); i3.id='ztype'; i3.value = z.type||''; l3.append(i3);
+      const l4 = document.createElement('div'); l4.style.cssText='font-size:12px;color:var(--muted)'; l4.textContent='적용 공정 (종류 기본값에서 이 구역만 켜고 끄기)';
+      const pbox = document.createElement('div'); pbox.style.cssText='display:flex;flex-direction:column;gap:4px;font-size:13px';
+      const pcs = {};
+      S.procs.forEach(p => { const l = document.createElement('label'); l.style.cssText='display:flex;gap:6px;align-items:center;color:var(--ink);flex-direction:row;font-size:13px'; const cb = document.createElement('input'); cb.type='checkbox'; cb.id='za-'+z.id+'-'+p.id; cb.checked = applies(z, p); pcs[p.id] = cb; l.append(cb, p.name + (p.pre ? ' (타업체)' : '')); pbox.append(l); });
+      const t = document.createElement('div'); t.className='toolbar';
+      const sv = document.createElement('button'); sv.type='button'; sv.className='btn primary'; sv.textContent='저장'; sv.onclick = () => {
+        z.label = i1.value.trim() || z.label; z.kind = s2.value; z.type = i3.value.trim();
+        const add = [], skip = [];
+        S.procs.forEach(p => { const want = pcs[p.id].checked, def = defApplies(z,p); if (want && !def) add.push(p.id); if (!want && def) skip.push(p.id); });
+        if (add.length) z.add = add; else delete z.add;
+        if (skip.length) z.skip = skip; else delete z.skip;
+        saveZones('구역을 저장했습니다'); };
+      const dl = document.createElement('button'); dl.type='button'; dl.className='btn danger'; dl.textContent='구역 삭제';
+      dl.onclick = () => { if (dl.dataset.armed){ S.zones = S.zones.filter(x=>x.id!==z.id); S.sel=null; saveZones('구역을 삭제했습니다'); } else { dl.dataset.armed='1'; dl.textContent='한 번 더 누르면 삭제'; } };
+      if (!S.canWrite || !db){ sv.disabled = dl.disabled = true; }
+      t.append(sv, dl); f.append(l1,l2,l3,l4,pbox,t); side.append(f);
+      return;
+    }
+    const list = document.createElement('div'); list.className='plist';
+    const ps = S.procs.filter(p=>applies(z,p));
+    if (!ps.length){ const e = document.createElement('div'); e.className='muted'; e.textContent = '이 구역에 적용되는 공정이 없습니다.'; list.append(e); }
+    const byIds = [];
+    ps.forEach(p => {
+      const rec = S.status[fid(z.floor)] && S.status[fid(z.floor)][z.id] && S.status[fid(z.floor)][z.id][p.id];
+      const row = document.createElement('label'); row.className='prow';
+      const done = isDone(z,p);
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.id='zc-'+z.id+'-'+p.id; cb.checked = done; cb.disabled = !S.canWrite || !db; cb.onchange = () => toggle(z,p);
+      const sw = document.createElement('span'); sw.style.cssText='width:10px;height:10px;flex:none;background:'+p.color+';border-radius:'+(p.pre?'2px':'50%');
+      const nm = document.createElement('span'); nm.textContent = p.name + (p.pre ? ' (타업체)' : '');
+      const w = document.createElement('span'); w.className='when'; w.textContent = rec ? rec.d : ''; if (rec && rec.by){ w.dataset.by = rec.by; byIds.push(rec.by); }
+      row.append(cb, sw, nm, w); list.append(row);
+      if (p.issues && p.issues.length && !done){
+        const ir = document.createElement('div'); ir.className='issrow'; ir.append('미완료 사유:');
+        const cur = issOf(z,p);
+        p.issues.forEach(t => { const bt = document.createElement('button'); bt.type='button'; bt.textContent = t; bt.setAttribute('aria-pressed', String(cur.includes(t))); bt.disabled = !S.canWrite || !db;
+          bt.onclick = () => setIssues(z, p, cur.includes(t) ? cur.filter(x=>x!==t) : [...cur, t]); ir.append(bt); });
+        list.append(ir);
+      }
+    });
+    side.append(list);
+    const back = document.createElement('button'); back.type='button'; back.className='btn'; back.style.marginTop='12px'; back.textContent = S.view + '층 현황 보기'; back.onclick = () => { S.sel=null; renderFloor(); }; side.append(back);
+    if (user && byIds.length){ user.profiles(byIds).then(ps2 => { side.querySelectorAll('.when[data-by]').forEach(el => { const n = ps2[el.dataset.by] && ps2[el.dataset.by].name; if (n) el.textContent = el.textContent + ' · ' + n; }); }); }
+  }
+  function renderFloor(){ renderChips(); renderPlan(); renderSide(); if (document.body.classList.contains('fs')) requestAnimationFrame(fsLayout); }
+
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { S.mode = b.dataset.mode; S.sel = null; renderFloor(); });
+  // ---------- 전체 화면 (태블릿) ----------
+  // 브라우저 전체 화면을 먼저 시도하고, 막혀 있으면(앱 안 화면 등) 페이지 안에서 도면만 크게 보는 모드로 전환
+  function fsOn(){ return document.body.classList.contains('fs'); }
+  function fsLayout(){
+    const top = $('#viewFloor .card'); const h = top ? top.getBoundingClientRect().height : 150;
+    document.body.style.setProperty('--fsTop', Math.round(h + 64) + 'px');
+    $('#fsBtn').textContent = fsOn() ? '전체 화면 끝내기' : '전체 화면';
+  }
+  async function fsEnter(){
+    document.body.classList.add('fs');
+    let native = false;
+    try { const el = document.documentElement; const req = el.requestFullscreen || el.webkitRequestFullscreen; if (req && document.fullscreenEnabled !== false){ await req.call(el); native = true; } } catch(e) {}
+    if (!native) document.body.classList.add('pseudo');
+    if (S.view === 'all') go(String(FLOORS.find(f => true)));
+    requestAnimationFrame(fsLayout);
+  }
+  async function fsExit(){
+    document.body.classList.remove('fs','pseudo');
+    try { if (document.fullscreenElement || document.webkitFullscreenElement) await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e) {}
+    fsLayout();
+  }
+  $('#fsBtn').onclick = () => fsOn() ? fsExit() : fsEnter();
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fsOn() && !document.body.classList.contains('pseudo')) fsExit(); });
+  window.addEventListener('resize', () => { if (fsOn()) fsLayout(); });
+  $('#zoomIn').onclick = () => { S.zoom = Math.min(3, +(S.zoom+0.25).toFixed(2)); renderPlan(); };
+  $('#zoomOut').onclick = () => { S.zoom = Math.max(1, +(S.zoom-0.25).toFixed(2)); renderPlan(); };
+
+  // ---------- writes ----------
+  const chains = {};
+  function queue(key, fn){ const prev = chains[key] || Promise.resolve(); const next = prev.catch(()=>{}).then(fn); chains[key] = next; return next; }
+  function writeFail(e){
+    const c = e && e.code;
+    if (c === 'invalid_argument'){ S.canWrite = false; msg('이 도면을 수정할 권한이 없어 보기 전용으로 표시합니다. 편집하려면 공유 설정에서 참여자(Contributor) 이상 권한이 필요합니다.'); }
+    else if (c === 'quota_exceeded') toast('저장 공간이 가득 찼습니다');
+    else toast('저장하지 못했습니다. 잠시 후 다시 시도해 주세요');
+    render();
+  }
+  async function patchFloor(f, patch){
+    const ref = db.doc('status/' + fid(f));
+    return queue(ref.path, async () => {
+      if (S.status[fid(f)]) await ref.update(patch);
+      else await ref.set(patch);
+    });
+  }
+  async function toggle(z, p){
+    if (!db || !S.canWrite){ toast('편집 권한이 없습니다'); return; }
+    const on = !isDone(z,p);
+    const rec = on ? { d: today(), by: S.uid } : null;
+    const cur = S.status[fid(z.floor)] || {};
+    S.status[fid(z.floor)] = { ...cur, [z.id]: { ...(cur[z.id]||{}), [p.id]: rec } };
+    render();
+    const bl = on && !p.pre ? blockers(z,p) : [];
+    const warn = bl.length ? ' · 주의: 선행 공정(' + bl.map(x=>x.name).join(', ') + ') 미완료' : '';
+    try { await patchFloor(z.floor, { [z.id]: { [p.id]: rec } }); toast(z.label + ' · ' + p.name + (on ? ' 완료' : ' 취소') + warn); }
+    catch(e){ writeFail(e); }
+  }
+  async function setIssues(z, p, iss){
+    if (!db || !S.canWrite){ toast('편집 권한이 없습니다'); return; }
+    const rec = iss.length ? { ok:false, iss, d: today(), by: S.uid } : null;
+    const cur = S.status[fid(z.floor)] || {};
+    S.status[fid(z.floor)] = { ...cur, [z.id]: { ...(cur[z.id]||{}), [p.id]: rec } };
+    render();
+    try { await patchFloor(z.floor, { [z.id]: { [p.id]: rec } }); toast(z.label + ' · ' + p.name + ' 미완료 사유: ' + (iss.join(', ') || '없음')); }
+    catch(e){ writeFail(e); }
+  }
+  async function bulk(p, on){
+    if (!db || !S.canWrite) return;
+    const f = Number(S.view); const zs = floorZones().filter(z=>applies(z,p) && isDone(z,p) !== on);
+    if (!zs.length){ toast('바꿀 구역이 없습니다'); return; }
+    const patch = {}; const cur = S.status[fid(f)] || {}; const next = { ...cur };
+    zs.forEach(z => { const rec = on ? { d: today(), by: S.uid } : null; patch[z.id] = { [p.id]: rec }; next[z.id] = { ...(cur[z.id]||{}), [p.id]: rec }; });
+    S.status[fid(f)] = next; render();
+    try { await patchFloor(f, patch); toast(f + '층 ' + p.name + ' ' + zs.length + '곳 ' + (on ? '완료' : '취소')); } catch(e){ writeFail(e); }
+  }
+  async function saveZones(okMsg){
+    if (!db || !S.canWrite){ toast('편집 권한이 없습니다'); return; }
+    render();
+    try { await queue('config/zones', () => db.doc('config/zones').set({ list: S.zones })); toast(okMsg); } catch(e){ writeFail(e); }
+  }
+
+  // ---------- render ----------
+  function render(){
+    renderHead(); renderTabs();
+    const all = S.view === 'all';
+    $('#viewAll').hidden = !all; $('#viewFloor').hidden = all;
+    if (all) renderAll(); else renderFloor();
+  }
+  render();
+
+  // ---------- store ----------
+  (async () => {
+    db = window.claude ? await claude.use('db') : null;
+    user = window.claude ? await claude.use('user') : null;
+    if (!db){ msg('공유 저장소에 연결되지 않았습니다. claude.ai에 로그인한 상태로 열어야 도면 표시가 저장되고 팀과 공유됩니다.', true); return; }
+    if (user){ S.uid = await user.id(); const c = await user.can('data.write'); if (c === false){ S.canWrite = false; msg('보기 전용입니다. 작업 표시를 하려면 공유 설정에서 참여자(Contributor) 이상 권한이 필요합니다.'); } }
+    const onErr = e => { if (e && e.code === 'revoked') msg('접근 권한이 바뀌어 더 이상 불러올 수 없습니다.', true); };
+    db.doc('config/processes').onSnapshot(s => { S.procs = (s.exists && s.data().list) || []; S.ready.p = true; if (!S.procDirty) S.draftProcs = null; render(); }, onErr);
+    db.doc('config/zones').onSnapshot(s => { if (s.metadata.hasPendingWrites) return; S.zones = ((s.exists && s.data().list) || []).map(z=>({...z})); S.ready.z = true; render(); }, onErr);
+    db.collection('status').onSnapshot(q => { const m = {}; q.docs.forEach(d => { m[d.id] = d.data(); }); S.status = m; S.ready.s = true; render(); }, onErr);
+  })();
+});
+</script>
+<script type="module" src="boot.js"></script>
+<script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
+</body>
+</html>

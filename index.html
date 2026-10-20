@@ -79,6 +79,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .issrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:-2px 0 4px 34px;font-size:12px;color:var(--muted)}
 .issrow button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:2px 9px;font:inherit;font-size:12px;cursor:pointer}
 .issrow button[aria-pressed="true"]{background:#B23A48;border-color:#B23A48;color:#fff}
+.issrow button.okb[aria-pressed="true"]{background:#2F7D4F;border-color:#2F7D4F;color:#fff}
 .mk .iss{font-family:var(--sans);font-size:9.5px;color:#B23A48;font-weight:700;line-height:1}
 .isssum{margin-top:10px;font-size:12.5px;color:var(--muted)}
 /* 전체 화면(태블릿) */
@@ -301,7 +302,8 @@ window.startApp = (function(){
       const zs = S.zones.filter(z => applies(z,p) && !isDone(z,p)); const cnt = {}; let withIss = 0;
       zs.forEach(z => { const is = issOf(z,p); if (is.length) withIss++; is.forEach(t => cnt[t] = (cnt[t]||0)+1); });
       const d = document.createElement('div'); d.className='isssum';
-      d.textContent = p.name + ' 미완료 ' + zs.length + '곳 · 사유 표시 ' + withIss + '곳' + (withIss ? ' (' + p.issues.map(t => t + ' ' + (cnt[t]||0)).join(' · ') + ')' : '');
+      const okN = S.zones.filter(z => applies(z,p) && isDone(z,p)).length;
+      d.textContent = p.name + ': ' + (p.doneLabel || '완료') + ' ' + okN + '곳 · ' + p.issues.map(t => t + ' ' + (cnt[t]||0)).join(' · ') + ' · 미확인 ' + (zs.length - withIss) + '곳';
       bars.append(d);
     });
     renderWait();
@@ -389,7 +391,7 @@ window.startApp = (function(){
     pw.querySelectorAll('.mk,.rg').forEach(n=>n.remove());
     const ap = S.procs.find(p=>p.id===S.active);
     // 복도 구간 영역(rects: [[x0,y0,x1,y1],...] 도면 대비 비율)
-    zs.forEach(z => (z.rects||[]).forEach(r => {
+    zs.forEach(z => (z.rects||[]).map(r => Array.isArray(r) ? r : [r.x0, r.y0, r.x1, r.y1]).forEach(r => {
       const d = document.createElement('div'); d.className='rg';
       d.style.left=(r[0]*100)+'%'; d.style.top=(r[1]*100)+'%'; d.style.width=((r[2]-r[0])*100)+'%'; d.style.height=((r[3]-r[1])*100)+'%';
       if (S.mode==='mark' && ap && applies(z,ap)){ const done = isDone(z,ap); d.style.borderColor = ap.color; d.style.background = done ? 'color-mix(in srgb,'+ap.color+' 35%, transparent)' : 'color-mix(in srgb,'+ap.color+' 7%, transparent)'; d.style.borderStyle = done ? 'solid' : 'dashed'; }
@@ -526,9 +528,11 @@ window.startApp = (function(){
       const nm = document.createElement('span'); nm.textContent = p.name + (p.pre ? ' (타업체)' : '');
       const w = document.createElement('span'); w.className='when'; w.textContent = rec ? rec.d : ''; if (rec && rec.by){ w.dataset.by = rec.by; byIds.push(rec.by); }
       row.append(cb, sw, nm, w); list.append(row);
-      if (p.issues && p.issues.length && !done){
-        const ir = document.createElement('div'); ir.className='issrow'; ir.append('미완료 사유:');
+      if (p.issues && p.issues.length){
+        const ir = document.createElement('div'); ir.className='issrow';
         const cur = issOf(z,p);
+        const okb = document.createElement('button'); okb.type='button'; okb.className='okb'; okb.textContent = p.doneLabel || '완료'; okb.setAttribute('aria-pressed', String(done)); okb.disabled = !S.canWrite || !db;
+        okb.onclick = () => toggle(z, p); ir.append(okb);
         p.issues.forEach(t => { const bt = document.createElement('button'); bt.type='button'; bt.textContent = t; bt.setAttribute('aria-pressed', String(cur.includes(t))); bt.disabled = !S.canWrite || !db;
           bt.onclick = () => setIssues(z, p, cur.includes(t) ? cur.filter(x=>x!==t) : [...cur, t]); ir.append(bt); });
         list.append(ir);

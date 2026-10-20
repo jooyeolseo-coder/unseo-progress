@@ -4,7 +4,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, doc, collection, getDoc, setDoc, onSnapshot, writeBatch }
+import { initializeFirestore, persistentLocalCache, doc, collection, getDoc, getDocs, setDoc, onSnapshot, writeBatch }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const $ = s => document.querySelector(s);
@@ -24,6 +24,9 @@ const app = initializeApp(cfg);
 const auth = getAuth(app);
 let fs;
 try { fs = initializeFirestore(app, { localCache: persistentLocalCache() }); } catch (e) { fs = initializeFirestore(app, {}); }
+
+// 관리용(Claude가 Chrome에서 데이터 정리할 때 사용). 로그인·권한 규칙은 그대로 적용됨
+window.__unseo = { fs, doc, collection, getDoc, getDocs, setDoc, writeBatch };
 
 // 오류 코드를 앱이 이해하는 코드로 맞춤 (권한 없음 → 보기 전용 처리)
 const wrapErr = e => { const c = e && e.code; const err = new Error(e && e.message); err.code = c === 'permission-denied' ? 'invalid_argument' : (c === 'resource-exhausted' ? 'quota_exceeded' : c); return err; };
@@ -80,7 +83,7 @@ function importUI() {
       const seed = JSON.parse(await f.text());
       const b = writeBatch(fs);
       b.set(doc(fs, 'config', 'processes'), seed.processes);
-      b.set(doc(fs, 'config', 'zones'), seed.zones);
+      b.set(doc(fs, 'config', 'zones'), { list: (seed.zones.list || []).map(z => z.rects ? { ...z, rects: z.rects.map(r => Array.isArray(r) ? { x0: r[0], y0: r[1], x1: r[2], y1: r[3] } : r) } : z) }); // Firestore는 배열 안 배열 불가
       Object.entries(seed.status || {}).forEach(([id, v]) => b.set(doc(fs, 'status', id), v));
       await b.commit();
       for (const [n, url] of Object.entries(seed.plans || {})) await setDoc(doc(fs, 'assets', n), { data: url });
